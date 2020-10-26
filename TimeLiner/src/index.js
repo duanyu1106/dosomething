@@ -1,15 +1,13 @@
+import * as THREE from 'three'
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
+import {TransformControls} from "three/examples/jsm/controls/TransformControls"
 import TimeLiner from "./TimeLiner"
 import crate from './textures/crate.gif'
+import Animation from "./Animation"
 
 let wrap = document.getElementById('wrap')
 new TimeLiner(wrap)
-
-import * as THREE from 'three'
-
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
-import {TransformControls} from "three/examples/jsm/controls/TransformControls"
-
-let camera, scene, renderer, control, orbit
+let camera, scene, renderer, control, orbit, animation, clock
 
 init()
 render()
@@ -35,7 +33,7 @@ function init() {
   scene.add(light)
 
 
-  let texture = new THREE.TextureLoader().load(crate, render)
+  let texture = new THREE.TextureLoader().load(crate, function(){})
   texture.mapping = THREE.UVMapping
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
 
@@ -45,10 +43,10 @@ function init() {
   orbit = new OrbitControls(camera, renderer.domElement)
   orbit.update()
 
-  orbit.addEventListener('change', render)
+  // orbit.addEventListener('change', render)
 
   control = new TransformControls(camera, renderer.domElement)
-  control.addEventListener('change', render)
+  // control.addEventListener('change', render)
   control.addEventListener('dragging-changed', function (event) {
 
     orbit.enabled = !event.value
@@ -67,6 +65,10 @@ function init() {
   window.addEventListener('keydown', function (event) {
 
     switch (event.code) {
+
+      case 'Space':
+        animation.play()
+        break
 
       case 'KeyQ': // Q
         control.setSpace(control.space === "local" ? "world" : "local")
@@ -121,20 +123,24 @@ function init() {
     {
       type: THREE.VectorKeyframeTrack,
       propertyPath: 'MyBox.position',
-      initialValue: [0, 0, 0],
-      interpolation: THREE.InterpolateSmooth
+      time: [0, 3],
+      value: [0, 0, 0, 0, 500, 0],
+      interpolation: THREE.InterpolateLinear
     },
 
     {
       type: THREE.QuaternionKeyframeTrack,
       propertyPath: 'MyBox.quaternion',
-      initialValue: [0, 0, 0, 1],
+      time: [0, 3],
+      value: [0, 0, 0, 1, 1, 1, 1, 1],
       interpolation: THREE.InterpolateLinear
 
     }
 
   ]
 
+  animation = new Animation(trackInfo, mesh)
+  // animation.play()
   // new Timeliner( new TimelinerController( scene, trackInfo, render ) )
 
 }
@@ -151,7 +157,6 @@ function onWindowResize() {
 }
 
 function render() {
-
   renderer.render(scene, camera)
-
+  requestAnimationFrame(render)
 }
